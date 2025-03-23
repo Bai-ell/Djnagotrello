@@ -34,5 +34,10 @@ class Task(models.Model):
     location = models.CharField(max_length=255, null=True, blank=True)
     done = models.BooleanField(default=False)
 
+    @property
+    def is_completed(self):
+        return self.done
+    
+
     def __str__(self):
         return self.name
