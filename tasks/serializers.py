@@ -12,23 +12,15 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 
-class TaskSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Task
-        fields = '__all__'
+# class TaskSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Task
+#         fields = '__all__'
 
 
 
 
-class CardSerializer(serializers.ModelSerializer):
-    tasks = TaskSerializer(many=True, read_only=True)
-    
-    class Meta:
-        model = Card
-        fields = '__all__'
-        extra_kwargs = {
-            'user': {'read_only': True} 
-        }
+
 
 
 
@@ -51,3 +43,15 @@ class TaskSerializer(serializers.ModelSerializer):
             setattr(instance, attr, value)  # Обновляем каждое поле
         instance.save()
         return instance
+    
+
+
+class CardSerializer(serializers.ModelSerializer):
+    tasks = TaskSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Card
+        fields = '__all__'
+        extra_kwargs = {
+            'user': {'read_only': True} 
+        }
