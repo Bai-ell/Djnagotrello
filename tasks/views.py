@@ -5,6 +5,7 @@ from django.core.exceptions import MultipleObjectsReturned
 from .models import User, Card, Task
 from .serializers import UserSerializer, CardSerializer, TaskSerializer, TaskUpdateSerializer, TaskDeleteSerializer
 from rest_framework.views import APIView
+from rest_framework.decorators import action
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -80,21 +81,20 @@ class TaskViewSet(viewsets.ModelViewSet):
     
 
 
-    def patch(self, request, *args, **kwargs):
-        serializer = TaskUpdateSerializer(data=request.data)
-        if serializer.is_valid():
-            task_id = serializer.validated_data['task_id']
-            done = serializer.validated_data['done']
-            try:
-                task = Task.objects.get(id=task_id)
-                task.done = done
-                task.save()
-                return Response({'status': 'Задача обновлена'}, status=status.HTTP_200_OK)
-            except Task.DoesNotExist:
-                return Response({'error': 'Задача не найдена'}, status=status.HTTP_404_NOT_FOUND)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+    @action(detail=True, methods=['patch'])
+    def toggle_done(self, request, pk=None):
+        """
+        Инвертирует поле done у задачи с переданным id.
+        """
+        try:
+            task = Task.objects.get(id=pk)
+            task.done = not task.done  # Инвертируем значение
+            task.save()
+            serializer = self.get_serializer(task)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Task.DoesNotExist:
+            return Response({'error': 'Задача не найдена'}, status=status.HTTP_404_NOT_FOUND)
+
 
 
     
@@ -131,7 +131,23 @@ class TaskViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         serializer.save(card=card)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
 
+    @action(detail=True, methods=['patch'])
+    def update_task(self, request, pk=None):
+        """
+        Обновляет задачу (название, описание и другие поля) по id.
+        """
+        try:
+            task = Task.objects.get(id=pk)
+        except Task.DoesNotExist:
+            return Response({'error': 'Задача не найдена'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = TaskSerializer(task, data=request.data, partial=True)  # partial=True для частичного обновления
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TaskDeleteView(APIView):

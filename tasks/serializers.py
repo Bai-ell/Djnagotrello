@@ -39,3 +39,15 @@ class TaskUpdateSerializer(serializers.Serializer):
 
 class TaskDeleteSerializer(serializers.Serializer):
     task_id = serializers.IntegerField()
+
+
+class TaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        fields = ['id', 'name', 'description', 'created_at', 'location', 'reach_date','done','card' ]  # укажи все поля модели
+
+    def update(self, instance, validated_data):
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)  # Обновляем каждое поле
+        instance.save()
+        return instance
