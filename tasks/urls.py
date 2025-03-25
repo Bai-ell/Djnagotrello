@@ -18,5 +18,6 @@ urlpatterns = [
     path('tasks/<int:task_id>/', TaskViewSet.as_view({'patch': 'update'}), name='task-update'),
     path('tasks/delete/<int:task_id>/', TaskDeleteView.as_view(), name='task-delete'),
     path('cards/delete/<int:card_id>/', CardDeleteView.as_view(), name='card-delete'),
-
+    path('tasks/toggle/<int:pk>/', TaskViewSet.as_view({'patch': 'toggle_done'}), name='task-toggle-done'),
+    path('tasks/update/<int:pk>/', TaskViewSet.as_view({'patch': 'update_task'}), name='task-update'),
 ]
